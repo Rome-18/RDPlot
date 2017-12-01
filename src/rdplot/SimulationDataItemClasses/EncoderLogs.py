@@ -422,36 +422,61 @@ class EncLogHM360Lib(AbstractEncLog):
         if self._enc_log_file_matches_re_pattern(self.path, r'-----360Lib\ software\ version\ \[4.0\]-----'):
             with open(self.path, 'r') as log_file:
                 log_text = log_file.read()  # reads the whole text file
+                # todo: \s can not be used, since it contains newline. can [ \t\r\f\v] be declared somehow?
+                # summaries = re.findall(r""" ^(\S+) .+ $ \s .+ $
+                #                             \s+ (\d+) \s+ \D \s+ (\S+)  # Total Frames, Bitrate
+                #                             [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # y-, u-, v-, yuv-PSNR
+                #                             [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # WSPSNR
+                #                             [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # C_SPSNR_NN
+                #                             [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # E2ESPSNR_NN
+                #                             [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # E2ESPSNR_I
+                #                             [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # E2ECPPPSNR
+                #                             [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # E2EWSPSNR
+                #                             [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # PSNR_DYN_VP0
+                #                             [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # PSNR_DYN_VP1
+                #                             [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # CFSPSNR_NN
+                #                             [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # CFSPSNR_I
+                #                             [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+  $# CFCPPPSNR
+                #                             """, log_text, re.M + re.X)
                 summaries = re.findall(r""" ^(\S+) .+ $ \s .+ $
                                             \s+ (\d+) \s+ \D \s+ (\S+)  # Total Frames, Bitrate
-                                            \s+ (\S+) \s+ (\S+) \s+ (\S+) \s+ (\S+)  # y-, u-, v-, yuv-PSNR
-                                            \s+ (\S+) \s+ (\S+) \s+ (\S+)  # WSPSNR
-                                            \s+ (\S+) \s+ (\S+) \s+ (\S+)  # C_SPSNR_NN
-                                            \s+ (\S+) \s+ (\S+) \s+ (\S+)  # E2ESPSNR_NN
-                                            \s+ (\S+) \s+ (\S+) \s+ (\S+)  # E2ESPSNR_I
-                                            \s+ (\S+) \s+ (\S+) \s+ (\S+)  # E2ECPPPSNR
-                                            \s+ (\S+) \s+ (\S+) \s+ (\S+)  # E2EWSPSNR
-                                            \s+ (\S+) \s+ (\S+) \s+ (\S+)  # PSNR_DYN_VP0
-                                            \s+ (\S+) \s+ (\S+) \s+ (\S+)  # PSNR_DYN_VP1
-                                            \s+ (\S+) \s+ (\S+) \s+ (\S+)  # CFSPSNR_NN
-                                            \s+ (\S+) \s+ (\S+) \s+ (\S+)  # CFSPSNR_I
-                                            \s+ (\S+) \s+ (\S+) \s+ (\S+) \s+  $# CFCPPPSNR
+                                            [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # y-, u-, v-, yuv-PSNR
+                                            [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # WSPSNR
+                                            [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # C_SPSNR_NN
+                                            [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # E2ESPSNR_NN
+                                            [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # E2EWSPSNR
+                                            [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # PSNR_DYN_VP0
+                                            [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # PSNR_DYN_VP1
+                                            [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+)  # CFSPSNR_NN
+                                            [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+ (\S+) [ \t\r\f\v]+  $# CFCPPPSNR
                                             """, log_text, re.M + re.X)
 
             data = {}
+            # names = {1: 'Frames', 2: 'Bitrate',
+            #          3: 'Y-PSNR', 4: 'U-PSNR', 5: 'V-PSNR', 6: 'YUV-PSNR',
+            #          7: 'Y-WSPSNR', 8: 'U-WSPSNR', 9: 'V-WSPSNR',
+            #          10: 'Y-C_SPSNR_NN', 11: 'U-C_SPSNR_NN', 12: 'V-C_SPSNR_NN',
+            #          13: 'Y-E2ESPSNR_NN', 14: 'U-E2ESPSNR_NN', 15: 'V-E2ESPSNR_NN',
+            #          16: 'Y-E2ESPSNR_I', 17: 'U-E2ESPSNR_I', 18: 'V-E2ESPSNR_I',
+            #          19: 'Y-E2ECPPPSNR', 20: 'U-E2ECPPPSNR', 21: 'V-E2ECPPPSNR',
+            #          22: 'Y-E2EWSPSNR', 23: 'U-E2EWSPSNR', 24: 'V-E2EWSPSNR',
+            #          25: 'Y-PSNR_DYN_VP0', 26: 'U-PSNR_DYN_VP0', 27: 'V-PSNR_DYN_VP0',
+            #          28: 'Y-PSNR_DYN_VP1', 29: 'U-PSNR_DYN_VP1', 30: 'V-PSNR_DYN_VP1',
+            #          31: 'Y-CFSPSNR_NN', 32: 'U-CFSPSNR_NN', 33: 'V-CFSPSNR_NN',
+            #          34: 'Y-CFSPSNR_I', 35: 'U-CFSPSNR_I', 36: 'V-CFSPSNR_I',
+            #          37: 'Y-CFCPPPSNR', 38: 'U-CFCPPPSNR', 39: 'V-CFCPPPSNR'
+            #          }
+
             names = {1: 'Frames', 2: 'Bitrate',
                      3: 'Y-PSNR', 4: 'U-PSNR', 5: 'V-PSNR', 6: 'YUV-PSNR',
                      7: 'Y-WSPSNR', 8: 'U-WSPSNR', 9: 'V-WSPSNR',
                      10: 'Y-C_SPSNR_NN', 11: 'U-C_SPSNR_NN', 12: 'V-C_SPSNR_NN',
                      13: 'Y-E2ESPSNR_NN', 14: 'U-E2ESPSNR_NN', 15: 'V-E2ESPSNR_NN',
-                     16: 'Y-E2ESPSNR_I', 17: 'U-E2ESPSNR_I', 18: 'V-E2ESPSNR_I',
-                     19: 'Y-E2ECPPPSNR', 20: 'U-E2ECPPPSNR', 21: 'V-E2ECPPPSNR',
-                     22: 'Y-E2EWSPSNR', 23: 'U-E2EWSPSNR', 24: 'V-E2EWSPSNR',
-                     25: 'Y-PSNR_DYN_VP0', 26: 'U-PSNR_DYN_VP0', 27: 'V-PSNR_DYN_VP0',
-                     28: 'Y-PSNR_DYN_VP1', 29: 'U-PSNR_DYN_VP1', 30: 'V-PSNR_DYN_VP1',
-                     31: 'Y-CFSPSNR_NN', 32: 'U-CFSPSNR_NN', 33: 'V-CFSPSNR_NN',
-                     34: 'Y-CFSPSNR_I', 35: 'U-CFSPSNR_I', 36: 'V-CFSPSNR_I',
-                     37: 'Y-CFCPPPSNR', 38: 'U-CFCPPPSNR', 39: 'V-CFCPPPSNR'
+                     16: 'Y-E2EWSPSNR', 17: 'U-E2EWSPSNR', 18: 'V-E2EWSPSNR',
+                     19: 'Y-PSNR_DYN_VP0', 20: 'U-PSNR_DYN_VP0', 21: 'V-PSNR_DYN_VP0',
+                     22: 'Y-PSNR_DYN_VP1', 23: 'U-PSNR_DYN_VP1', 24: 'V-PSNR_DYN_VP1',
+                     25: 'Y-CFSPSNR_NN', 26: 'U-CFSPSNR_NN', 27: 'V-CFSPSNR_NN',
+                     28: 'Y-CFCPPPSNR', 29: 'U-CFCPPPSNR', 30: 'V-CFCPPPSNR'
                      }
 
             for i in range(0, len(summaries)):  # iterate through Summary, I, P, B
