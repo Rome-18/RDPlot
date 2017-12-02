@@ -332,6 +332,7 @@ class EncLogHM360Lib(AbstractEncLog):
             pitch = m.group(2)
             roll = m.group(3)
             parsed_config['SVideoRotation'] = 'Y%sP%sR%s' % (yaw, pitch, roll)
+        self.qp = parsed_config['QP']
 
         return parsed_config
 
@@ -494,20 +495,33 @@ class EncLogHM360Lib(AbstractEncLog):
         # this function extracts temporal values
         with open(self.path, 'r') as log_file:
             log_text = log_file.read()  # reads the whole text file
+            # temp_data = re.findall(r"""
+            #     ^POC \s+ (\d+) \s+ .+ \s+ \d+ \s+ . \s+ (.-\D+) ,  # POC, Slice
+            #     \s .+ \) \s+ (\d+) \s+ \S+ \s+  # bitrate
+            #     \[ \S \s (\S+) \s \S+ \s+ \S \s (\S+) \s \S+ \s+ \S \s (\S+) \s \S+ ] \s  # y-, u-, v-PSNR
+            #     \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-SPSNR_NN
+            #     \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-WSPSNR
+            #     \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-SPSNR_I
+            #     \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-CPPPSNR
+            #     \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-E2EWSPSNR
+            #     \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-PSNR_VP0
+            #     \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-PSNR_VP1
+            #     \[ \S+ \s \S+ \s \S+ \s+ \S+ \s \S+ \s \S+ \s+ \S+ \s \S+ \s \S+ ] \s  #y-, u-, v-CFSPSNR_NN
+            #     \[ \S+ \s \S+ \s \S+ \s+ \S+ \s \S+ \s \S+ \s+ \S+ \s \S+ \s \S+ ] \s  #y-, u-, v-CFSPSNR_I
+            #     \[ \S+ \s \S+ \s \S+ \s+ \S+ \s \S+ \s \S+ \s+ \S+ \s \S+ \s \S+ ] \s  #y-, u-, v-CFCPPPSNR
+            #     \[ \D+ \s+ (\d+) \s+ #ET
+            #     """, log_text, re.M + re.X)
             temp_data = re.findall(r"""
                 ^POC \s+ (\d+) \s+ .+ \s+ \d+ \s+ . \s+ (.-\D+) ,  # POC, Slice
                 \s .+ \) \s+ (\d+) \s+ \S+ \s+  # bitrate
-                \[ \S \s (\S+) \s \S+ \s+ \S \s (\S+) \s \S+ \s+ \S \s (\S+) \s \S+ ] \s  # y-, u-, v-PSNR
-                \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-SPSNR_NN
-                \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-WSPSNR
-                \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-SPSNR_I
-                \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-CPPPSNR
+                 \[ \S \s (\S+) \s \S+ \s+ \S \s (\S+) \s \S+ \s+ \S \s (\S+) \s \S+ ] \s  # y-, u-, v-PSNR
+                \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-C_SPSNR_NN
+                \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-E2ESPSNR_NN
                 \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-E2EWSPSNR
-                \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-PSNR_VP0
-                \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-PSNR_VP1
-                \[ \S+ \s \S+ \s \S+ \s+ \S+ \s \S+ \s \S+ \s+ \S+ \s \S+ \s \S+ ] \s  #y-, u-, v-CFSPSNR_NN
-                \[ \S+ \s \S+ \s \S+ \s+ \S+ \s \S+ \s \S+ \s+ \S+ \s \S+ \s \S+ ] \s  #y-, u-, v-CFSPSNR_I
-                \[ \S+ \s \S+ \s \S+ \s+ \S+ \s \S+ \s \S+ \s+ \S+ \s \S+ \s \S+ ] \s  #y-, u-, v-CFCPPPSNR
+                \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-PSNR_DYN_VP0
+                \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-PSNR_DYN_VP1
+                \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-CFSPSNR_NN
+                \[ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ \s+ \S+ \s (\S+) \s \S+ ] \s  #y-, u-, v-CFCPPPSNR
                 \[ \D+ \s+ (\d+) \s+ #ET
                 """, log_text, re.M + re.X)
 
@@ -515,13 +529,14 @@ class EncLogHM360Lib(AbstractEncLog):
         # output key. Output shape definition is in one place.
         names = {0: 'Frames', 2: 'Bits',
                  3: 'Y-PSNR', 4: 'U-PSNR', 5: 'V-PSNR',
-                 6: 'Y-SPSNR_NN', 7: 'U-SPSNR_NN', 8: 'V-SPSNR_NN',
-                 9: 'Y-WSPSNR', 10: 'U-WSPSNR', 11: 'V-WSPSNR',
-                 12: 'Y-SPSNR_I', 13: 'U-SPSNR_I', 14: 'V-SPSNR_I',
-                 15: 'Y-CPPSNR', 16: 'U-CPPSNR', 17: 'V-CPPSNR',
-                 18: 'Y-E2EWSPSNR', 19: 'U-E2EWSPSNR', 20: 'V-E2EWSPSNR',
-                 21: 'Y-PSNR_VP0', 22: 'U-PSNR_VP0', 23: 'V-PSNR_VP0',
-                 24: 'Y-PSNR_VP1', 25: 'U-PSNR_VP1', 26: 'V-PSNR_VP1', 27: 'ET'
+                 6: 'Y-C_SPSNR_NN', 7: 'U-C_SPSNR_NN', 8: 'V-C_SPSNR_NN',
+                 9: 'Y-E2ESPSNR_NN', 10: 'U-E2ESPSNR_NN', 11: 'V-E2ESPSNR_NN',
+                 12: 'Y-E2EWSPSNR', 13: 'U-E2EWSPSNR', 14: 'V-E2EWSPSNR',
+                 15: 'Y-PSNR_DYN_VP0', 16: 'U-PSNR_DYN_VP0', 17: 'V-PSNR_DYN_VP0',
+                 18: 'Y-PSNR_DYN_VP1', 19: 'U-PSNR_DYN_VP1', 20: 'V-PSNR_DYN_VP1',
+                 21: 'Y-PSNR_DYN_VP1', 22: 'U-PSNR_DYN_VP1', 23: 'V-PSNR_DYN_VP1',
+                 24: 'Y-CFSPSNR_NN', 25: 'U-CFSPSNR_NN', 26: 'V-CFSPSNR_NN',
+                 27: 'Y-CFCPPPSNR', 28: 'U-CFCPPPSNR', 29: 'V-CFCPPPSNR', 30: 'ET'
                  }
 
         # Define output data dict and fill it with parsed values
