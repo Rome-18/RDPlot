@@ -309,6 +309,10 @@ class EncLogHM360Lib(AbstractEncLog):
             log_text = log_file.read()  # reads the whole text file
             lines = log_text.split('\n')
             cleanlist = []
+            # some of the configs should not be interpreted as parameters
+            # those are removed from the cleanlist
+            param_not_considered = ['RealFormat', 'Warning', 'InternalFormat', 'Byteswrittentofile', 'Frameindex',
+                                    'TotalTime', 'HMsoftware']
             for one_line in lines:
                 if one_line:
                     if '-----360 video parameters----' in one_line:
@@ -316,13 +320,14 @@ class EncLogHM360Lib(AbstractEncLog):
                     if one_line.count(':') == 1:
                         clean_line = one_line.strip(' \n\t\r')
                         clean_line = clean_line.replace(' ', '')
-                        cleanlist.append(clean_line)
                         # elif one_line.count(':')>1:
                         # Ignore Multiline stuff for now
                         # TODO: do something smart
                         # else:
                         # Something else happened, do nothing
                         # TODO: do something smart
+                        if not any(re.search(param,clean_line) for param in param_not_considered):
+                            cleanlist.append(clean_line)
         parsed_config = dict(item.split(':') for item in cleanlist)
 
         # parse 360 rotation parameter
