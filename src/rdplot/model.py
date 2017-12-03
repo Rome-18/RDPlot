@@ -760,71 +760,71 @@ class SimDataItemTreeModel(OrderedDictTreeModel):
         # are not parameters
         # if you want to simulate with your own parameters, make sure that they appear in the
         # logfile
-        try:
-            for sim_data_item in sim_data_items:
+        sim_class = False
+        for sim_data_item in sim_data_items:
+            try:
                 if sim_data_item.__class__ not in all_enc_configs:
                     all_enc_configs[sim_data_item.__class__] = []
                     diff_dict[sim_data_item.__class__] = {}
                 all_enc_configs[sim_data_item.__class__].append(sim_data_item.encoder_config)
                 # print(sim_data_item.summary_data['encoder_config'])
-            value_filter = ['.yuv','.bin','.hevc','.jem']
-            key_filter = []
-            for sim_class in all_enc_configs.keys():
-                for i in range(len(all_enc_configs[sim_class]) - 1):
-                    current_item, next_item = all_enc_configs[sim_class][i], all_enc_configs[sim_class][i + 1]
-                    diff = set(current_item.values()) ^ set(next_item.values())
-                    for (key, value) in set(current_item.items()) ^ set(next_item.items()):
-                        if all(y not in key for y in key_filter):
-                            if all(x not in value for x in value_filter):
-                                if key not in diff_dict[sim_class]:
-                                    diff_dict[sim_class][key] = []
-                                    diff_dict[sim_class][key].append(value)
-                                else:
-                                    if value not in diff_dict[sim_class][key]:
+                value_filter = ['.yuv','.bin','.hevc','.jem']
+                key_filter = []
+                for sim_class in all_enc_configs.keys():
+                    for i in range(len(all_enc_configs[sim_class]) - 1):
+                        current_item, next_item = all_enc_configs[sim_class][i], all_enc_configs[sim_class][i + 1]
+                        diff = set(current_item.values()) ^ set(next_item.values())
+                        for (key, value) in set(current_item.items()) ^ set(next_item.items()):
+                            if all(y not in key for y in key_filter):
+                                if all(x not in value for x in value_filter):
+                                    if key not in diff_dict[sim_class]:
+                                        diff_dict[sim_class][key] = []
                                         diff_dict[sim_class][key].append(value)
+                                    else:
+                                        if value not in diff_dict[sim_class][key]:
+                                            diff_dict[sim_class][key].append(value)
+            except AttributeError:
+                # maybe do something useful here
+                # This is for conformance with rd data written out by older versions of rdplot
+                pass
 
-                # dialog window which displays all parameters with varying values in a list
-                # the user can drag the parameters, he wants to analyse further into an other list
-                # the order of the parameters in the list determines the order of the parameter tree
-                if diff_dict[sim_class]:
-                    par_list = [item for item in diff_dict[sim_class] if item != 'QP']
-                    qp_item = QtWidgets.QListWidgetItem('QP')
-                    chosen_par = QtWidgets.QListWidget()
-                    chosen_par.addItem(qp_item)
-                    chosen_par.setDragDropMode(QAbstractItemView.DragDrop)
-                    chosen_par.setDefaultDropAction(QtCore.Qt.MoveAction)
-                    not_chosen_par = QtWidgets.QListWidget()
-                    not_chosen_par.addItems(par_list)
-                    not_chosen_par.setDragDropMode(QAbstractItemView.DragDrop)
-                    not_chosen_par.setDefaultDropAction(QtCore.Qt.MoveAction)
-                    if len(diff_dict[sim_class]) > 1:
-                        main_layout = QVBoxLayout()
-                        dialog = QDialog()
-                        dialog.setWindowTitle('Choose Parameters')
-                        dialog.setLayout(main_layout)
-                        msg = QtWidgets.QLabel()
-                        msg.setText('Additional Parameters have been found.\n'
-                                    'Move Parameters you want to consider further to the right list.\n')
-                        main_layout.addWidget(msg)
-                        list_layout = QHBoxLayout()
-                        main_layout.addLayout(list_layout)
-                        # TODO: all items dragged into chosen_par should appear above the qp_item
-                        list_layout.addWidget(not_chosen_par)
-                        list_layout.addWidget(chosen_par)
-                        not_chosen_par.show()
-                        chosen_par.show()
-                        ok_button = QPushButton('OK')
-                        main_layout.addWidget(ok_button)
-                        ok_button.clicked.connect(dialog.close)
-                        dialog.exec()
-                    for i in range(len(not_chosen_par)):
-                        diff_dict[sim_class].pop(not_chosen_par.item(i).text(), None)
-                    additional_param_found.append(sim_class)
-
-        except(AttributeError):
-            # maybe do something useful here
-            # This is for conformance with rd data written out by older versions of rdplot
-            pass
+        # dialog window which displays all parameters with varying values in a list
+        # the user can drag the parameters, he wants to analyse further into an other list
+        # the order of the parameters in the list determines the order of the parameter tree
+        if sim_class:
+            par_list = [item for item in diff_dict[sim_class] if item != 'QP']
+            qp_item = QtWidgets.QListWidgetItem('QP')
+            chosen_par = QtWidgets.QListWidget()
+            chosen_par.addItem(qp_item)
+            chosen_par.setDragDropMode(QAbstractItemView.DragDrop)
+            chosen_par.setDefaultDropAction(QtCore.Qt.MoveAction)
+            not_chosen_par = QtWidgets.QListWidget()
+            not_chosen_par.addItems(par_list)
+            not_chosen_par.setDragDropMode(QAbstractItemView.DragDrop)
+            not_chosen_par.setDefaultDropAction(QtCore.Qt.MoveAction)
+            if len(diff_dict[sim_class]) > 1:
+                main_layout = QVBoxLayout()
+                dialog = QDialog()
+                dialog.setWindowTitle('Choose Parameters')
+                dialog.setLayout(main_layout)
+                msg = QtWidgets.QLabel()
+                msg.setText('Additional Parameters have been found.\n'
+                            'Move Parameters you want to consider further to the right list.\n')
+                main_layout.addWidget(msg)
+                list_layout = QHBoxLayout()
+                main_layout.addLayout(list_layout)
+                # TODO: all items dragged into chosen_par should appear above the qp_item
+                list_layout.addWidget(not_chosen_par)
+                list_layout.addWidget(chosen_par)
+                not_chosen_par.show()
+                chosen_par.show()
+                ok_button = QPushButton('OK')
+                main_layout.addWidget(ok_button)
+                ok_button.clicked.connect(dialog.close)
+                dialog.exec()
+            for i in range(len(not_chosen_par)):
+                diff_dict[sim_class].pop(not_chosen_par.item(i).text(), None)
+            additional_param_found.append(sim_class)
 
         for sim_data_item in sim_data_items:
 
